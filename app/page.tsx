@@ -38,8 +38,8 @@ export default function Home() {
         <p className="mt-1 max-w-2xl text-sm text-stone-400">{t.intro}</p>
       </header>
 
-      <main className="flex flex-1 flex-col lg:h-[calc(100vh-150px)] lg:flex-row lg:overflow-hidden">
-        <div className="h-[46vh] shrink-0 border-b border-stone-200 lg:h-auto lg:w-80 lg:border-b-0 lg:border-r">
+      <main className="flex flex-1 flex-col lg:h-[calc(100dvh-85px)] lg:flex-none lg:flex-row lg:overflow-hidden">
+        <div className="h-[46vh] shrink-0 border-b border-stone-200 lg:h-full lg:min-h-0 lg:w-80 lg:border-b-0 lg:border-r">
           <PaletteGallery
             palettes={all}
             selectedId={palette.id}
