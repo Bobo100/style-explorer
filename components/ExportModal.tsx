@@ -7,29 +7,17 @@ import { exportCss } from "@/lib/export-css";
 import { exportTailwind } from "@/lib/export-tailwind";
 import { exportScss } from "@/lib/export-scss";
 import { exportJson } from "@/lib/export-json";
-import { t } from "@/lib/strings";
+import { exportShadcn } from "@/lib/export-shadcn";
+import { useT } from "@/lib/i18n";
 
-type Format = "css" | "tailwind" | "scss" | "json";
-
-const FORMATS: { key: Format; label: string }[] = [
-  { key: "css", label: t.exportModal.css },
-  { key: "tailwind", label: t.exportModal.tailwind },
-  { key: "scss", label: t.exportModal.scss },
-  { key: "json", label: t.exportModal.json },
-];
+type Format = "css" | "tailwind" | "scss" | "json" | "shadcn";
 
 const RENDER: Record<Format, (p: Palette) => string> = {
   css: exportCss,
   tailwind: exportTailwind,
   scss: exportScss,
   json: exportJson,
-};
-
-const HINTS: Record<Format, string> = {
-  css: t.exportModal.cssHint,
-  tailwind: t.exportModal.twHint,
-  scss: t.exportModal.scssHint,
-  json: t.exportModal.jsonHint,
+  shadcn: exportShadcn,
 };
 
 export default function ExportModal({
@@ -41,15 +29,25 @@ export default function ExportModal({
   open: boolean;
   onClose: () => void;
 }) {
+  const t = useT();
   const [format, setFormat] = useState<Format>("css");
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    if (!open) {
-      setCopied(false);
-      setFormat("css");
-    }
-  }, [open]);
+  const FORMATS: { key: Format; label: string }[] = [
+    { key: "css", label: t.exportModal.css },
+    { key: "tailwind", label: t.exportModal.tailwind },
+    { key: "scss", label: t.exportModal.scss },
+    { key: "json", label: t.exportModal.json },
+    { key: "shadcn", label: t.exportModal.shadcn },
+  ];
+
+  const HINTS: Record<Format, string> = {
+    css: t.exportModal.cssHint,
+    tailwind: t.exportModal.twHint,
+    scss: t.exportModal.scssHint,
+    json: t.exportModal.jsonHint,
+    shadcn: t.exportModal.shadcnHint,
+  };
 
   useEffect(() => {
     if (!open) return;

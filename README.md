@@ -8,11 +8,15 @@
 
 ## 功能
 
-- **24 組策展配色**,依 8 種風格(沉穩專業 / 活力新創 / 自然有機 / 科技未來…)篩選
-- **即時版型預覽**:3 種真實版型吃 CSS variables,換配色零延遲反映
+- **24 組策展配色** + **動態產生器**(HSL 色彩和諧,保證達到 AA / AAA),依 8 種風格篩選
+- **從圖片 / Logo 取色**:上傳圖片,canvas 取主色自動配成一組(語意角色 + 中性骨架)
+- **即時版型預覽**:5 種真實版型(Landing / Blog / Dashboard / 電商 / 表單)吃 CSS variables,換配色零延遲;**亮 / 暗主題切換**(自動推深色版)+ **色盲模擬**
 - **白話說明**:每組配色的適用情境、為何好看(用例子不用術語)、每個角色用在哪
-- **WCAG 對比度檢查**:文字/底色組合自動算對比比值 + AA/AAA 徽章
-- **一鍵匯出**:CSS variables(`:root`)或 Tailwind v4(`@theme`),可直接複製
+- **WCAG 對比度檢查**:文字/底色對比比值 + AA/AAA 徽章,可切**內文 / 大字**門檻;**一鍵修到 AA / AAA**
+- **自訂微調**:9 個語意角色逐一改色,或用**整組明暗 / 鮮豔度滑桿**粗調
+- **收藏 / 最愛**(localStorage)+ **URL 分享**(含自訂色值)
+- **多格式匯出**:CSS variables(含漸層 / 陰影 token)/ Tailwind v4 `@theme` / SCSS / W3C Design Tokens JSON / shadcn/ui(含 `.dark`)
+- **中 / 英雙語介面**
 - **內嵌色彩學**:對比 / 互補 / 類似色 / 中性色,看色塊就懂
 
 ## 技術
@@ -42,18 +46,27 @@ bun run build    # production build
 lib/                       引擎與資料(純函式,TDD)
 ├─ types.ts                Palette / Role / MoodTag
 ├─ palettes.ts             24 組策展配色
-├─ contrast.ts             WCAG 對比度 + AA/AAA
-├─ export-css.ts           配色 → CSS variables
-├─ export-tailwind.ts      配色 → Tailwind v4 @theme
+├─ contrast.ts             WCAG 對比度 + AA/AAA(含大字門檻)
+├─ color.ts                hex ↔ HSL
+├─ generate.ts             動態配色產生器(色彩和諧 + 保證達標)
+├─ grade.ts                配色整體可讀性評級
+├─ extract.ts              圖片主色 → 語意配色(取色為純函式)
+├─ dark.ts                 亮色配色 → 深色版
+├─ tweak.ts                整組明暗 / 鮮豔度微調
+├─ adjust.ts               改單色 + 一鍵修到 AA/AAA
+├─ colorblind.ts           色盲模擬(LMS 矩陣)
+├─ favorites.ts / share.ts localStorage 收藏 / URL 分享編解碼
+├─ export-*.ts             CSS / Tailwind / SCSS / JSON / shadcn 匯出
 ├─ css-vars.ts             配色 → React style 物件(--app-*)
-└─ strings.ts              繁中文案集中(留 i18n 擴充)
+├─ strings.ts              中 / 英雙語文案
+└─ i18n.tsx                語系 context(useT / useLang)
 
 components/
-├─ PaletteGallery          左:瀏覽 + 風格篩選
-├─ PreviewPane             中:版型切換 + 注入 CSS var
-├─ templates/              Landing / Blog / Dashboard
-├─ InfoPanel               右:情境 / 為何 / 對比徽章 / 角色用途
-├─ ExportModal             匯出 CSS / Tailwind
+├─ PaletteGallery          左:瀏覽 / 篩選 / 產生 / 圖片取色
+├─ PreviewPane             中:版型切換 + 亮暗 + 色盲 + 注入 CSS var
+├─ templates/              Landing / Blog / Dashboard / 電商 / 表單
+├─ InfoPanel               右:情境 / 為何 / 對比 / 角色 / 微調 / 收藏 / 匯出
+├─ ExportModal             匯出 CSS / Tailwind / SCSS / JSON / shadcn
 └─ ColorTheoryCards        色彩學小卡
 ```
 
@@ -61,4 +74,4 @@ components/
 
 ## Roadmap
 
-Figma tokens 匯出 · 英文 i18n · 自訂配色(色相/明度微調)· AI 配色生成 · URL 分享狀態 · 收藏最愛
+AI 配色生成(給情境一句話生配色,需接 API)· 更多版型(部落格列表 / 定價頁)· 更多衍生 token(間距 / 圓角)

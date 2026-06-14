@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Download, Wand2, Pencil, Share2, Check, Heart } from "lucide-react";
+import { Download, Wand2, Pencil, Share2, Check, Heart, Sliders } from "lucide-react";
 import type { Palette, Role } from "@/lib/types";
 import { ROLES } from "@/lib/types";
 import { contrastRatio, wcagLevel, type WcagResult } from "@/lib/contrast";
 import { meetsGrade } from "@/lib/grade";
-import { t } from "@/lib/strings";
+import { useT } from "@/lib/i18n";
 import ExportModal from "./ExportModal";
 
 const LEVEL_STYLE: Record<WcagResult, string> = {
@@ -19,13 +19,17 @@ function ContrastRow({
   label,
   fg,
   bg,
+  large,
+  failLabel,
 }: {
   label: string;
   fg: string;
   bg: string;
+  large: boolean;
+  failLabel: string;
 }) {
   const ratio = contrastRatio(fg, bg);
-  const level = wcagLevel(ratio);
+  const level = wcagLevel(ratio, large);
   return (
     <div className="flex items-center justify-between gap-2 py-1.5">
       <div className="flex items-center gap-2">
@@ -44,7 +48,7 @@ function ContrastRow({
         <span
           className={`rounded px-1.5 py-0.5 text-[11px] font-bold ${LEVEL_STYLE[level]}`}
         >
-          {level === "Fail" ? "不足" : level}
+          {level === "Fail" ? failLabel : level}
         </span>
       </div>
     </div>
@@ -55,22 +59,49 @@ export default function InfoPanel({
   palette,
   onEdit,
   onAutoFix,
+  onTweak,
+  tweakKey,
   isFav,
   onToggleFav,
 }: {
   palette: Palette;
   onEdit: (role: Role, hex: string) => void;
   onAutoFix: (level: "AA" | "AAA") => void;
+  onTweak: (lightness: number, saturation: number) => void;
+  tweakKey: string;
   isFav: boolean;
   onToggleFav: () => void;
 }) {
+  const t = useT();
   const [exportOpen, setExportOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [tweakOpen, setTweakOpen] = useState(false);
   const [shared, setShared] = useState(false);
+  const [large, setLarge] = useState(false);
+  const [lAdj, setLAdj] = useState(0);
+  const [sAdj, setSAdj] = useState(1);
+
+  // 換配色(select / 產生 / 取色 / 一鍵修)時把滑桿歸零。
+  // React 官方「prop 變了就在 render 期重置 state」模式,免 effect。
+  const [prevKey, setPrevKey] = useState(tweakKey);
+  if (prevKey !== tweakKey) {
+    setPrevKey(tweakKey);
+    setLAdj(0);
+    setSAdj(1);
+  }
+
   const usageEntries = Object.entries(palette.roleUsage) as [Role, string][];
 
   const isAA = meetsGrade(palette, "AA");
   const isAAA = meetsGrade(palette, "AAA");
+
+  const applyTweak = (l: number, s: number) => {
+    setLAdj(l);
+    setSAdj(s);
+    onTweak(l, s);
+  };
+
+  const resetTweak = () => applyTweak(0, 1);
 
   const share = async () => {
     try {
@@ -100,7 +131,7 @@ export default function InfoPanel({
                 key={m}
                 className="rounded-full bg-stone-100 px-2 py-0.5 text-xs text-stone-500"
               >
-                {m}
+                {t.moodNames[m] ?? m}
               </span>
             ))}
           </div>
@@ -117,26 +148,49 @@ export default function InfoPanel({
         </Section>
 
         <Section title={t.info.contrast}>
-          <p className="mb-1 text-xs text-stone-400">{t.info.contrastHint}</p>
+          <div className="mb-1.5 flex items-center justify-between gap-2">
+            <p className="text-xs text-stone-400">{t.info.contrastHint}</p>
+            <div className="flex shrink-0 items-center gap-1">
+              <SizeToggle active={!large} onClick={() => setLarge(false)}>
+                {t.info.textNormal}
+              </SizeToggle>
+              <SizeToggle active={large} onClick={() => setLarge(true)}>
+                {t.info.textLarge}
+              </SizeToggle>
+            </div>
+          </div>
+          {large && (
+            <p className="mb-1 text-[11px] text-stone-400">
+              {t.info.textSizeHint}
+            </p>
+          )}
           <ContrastRow
             label={t.contrast.textOnBg}
             fg={palette.roles.text}
             bg={palette.roles.background}
+            large={large}
+            failLabel={t.fail}
           />
           <ContrastRow
             label={t.contrast.textOnSurface}
             fg={palette.roles.text}
             bg={palette.roles.surface}
+            large={large}
+            failLabel={t.fail}
           />
           <ContrastRow
             label={t.contrast.primary}
             fg={palette.roles.primaryFg}
             bg={palette.roles.primary}
+            large={large}
+            failLabel={t.fail}
           />
           <ContrastRow
             label={t.contrast.accent}
             fg={palette.roles.accentFg}
             bg={palette.roles.accent}
+            large={large}
+            failLabel={t.fail}
           />
 
           {!isAAA && (
@@ -157,14 +211,24 @@ export default function InfoPanel({
         </Section>
 
         <Section title={t.info.roles}>
-          <button
-            onClick={() => setEditOpen((v) => !v)}
-            aria-expanded={editOpen}
-            className="mb-2 flex items-center gap-1.5 text-sm font-medium text-stone-700 transition-colors hover:text-stone-900 cursor-pointer"
-          >
-            <Pencil className="h-3.5 w-3.5" />
-            {t.info.edit}
-          </button>
+          <div className="mb-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+            <button
+              onClick={() => setEditOpen((v) => !v)}
+              aria-expanded={editOpen}
+              className="flex items-center gap-1.5 text-sm font-medium text-stone-700 transition-colors hover:text-stone-900 cursor-pointer"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              {t.info.edit}
+            </button>
+            <button
+              onClick={() => setTweakOpen((v) => !v)}
+              aria-expanded={tweakOpen}
+              className="flex items-center gap-1.5 text-sm font-medium text-stone-700 transition-colors hover:text-stone-900 cursor-pointer"
+            >
+              <Sliders className="h-3.5 w-3.5" />
+              {t.info.tweak}
+            </button>
+          </div>
 
           {editOpen && (
             <div className="mb-3 grid grid-cols-2 gap-2 rounded-lg bg-stone-50 p-3">
@@ -183,6 +247,34 @@ export default function InfoPanel({
                   <span className="truncate">{t.roleNames[role] ?? role}</span>
                 </label>
               ))}
+            </div>
+          )}
+
+          {tweakOpen && (
+            <div className="mb-3 space-y-3 rounded-lg bg-stone-50 p-3">
+              <p className="text-[11px] text-stone-400">{t.info.tweakHint}</p>
+              <SliderRow
+                label={t.info.tweakLightness}
+                min={-0.2}
+                max={0.2}
+                step={0.01}
+                value={lAdj}
+                onChange={(v) => applyTweak(v, sAdj)}
+              />
+              <SliderRow
+                label={t.info.tweakSaturation}
+                min={0.5}
+                max={1.5}
+                step={0.05}
+                value={sAdj}
+                onChange={(v) => applyTweak(lAdj, v)}
+              />
+              <button
+                onClick={resetTweak}
+                className="text-xs font-medium text-stone-500 underline-offset-2 hover:underline cursor-pointer"
+              >
+                {t.info.tweakReset}
+              </button>
             </div>
           )}
 
@@ -243,11 +335,70 @@ export default function InfoPanel({
       </div>
 
       <ExportModal
+        key={String(exportOpen)}
         palette={palette}
         open={exportOpen}
         onClose={() => setExportOpen(false)}
       />
     </div>
+  );
+}
+
+function SizeToggle({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      aria-pressed={active}
+      className={`rounded px-2 py-0.5 text-[11px] font-medium transition-colors cursor-pointer ${
+        active
+          ? "bg-stone-900 text-white"
+          : "bg-stone-100 text-stone-500 hover:bg-stone-200"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function SliderRow({
+  label,
+  min,
+  max,
+  step,
+  value,
+  onChange,
+}: {
+  label: string;
+  min: number;
+  max: number;
+  step: number;
+  value: number;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1 block text-xs font-medium text-stone-500">
+        {label}
+      </span>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(parseFloat(e.target.value))}
+        aria-label={label}
+        className="w-full cursor-pointer accent-stone-900"
+      />
+    </label>
   );
 }
 

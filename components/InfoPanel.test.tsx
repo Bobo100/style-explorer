@@ -15,11 +15,25 @@ function broken(): Palette {
   };
 }
 
+// 主色按鈕對比 ~3.5:1 → 內文門檻 Fail、大字門檻 AA(其餘角色維持達標)
+function primaryBorderline(): Palette {
+  return {
+    ...PALETTES[0],
+    roles: {
+      ...PALETTES[0].roles,
+      primary: "#888888",
+      primaryFg: "#ffffff",
+    },
+  };
+}
+
 function renderPanel(palette: Palette, overrides = {}) {
   const props = {
     palette,
     onEdit: vi.fn(),
     onAutoFix: vi.fn(),
+    onTweak: vi.fn(),
+    tweakKey: "0",
     isFav: false,
     onToggleFav: vi.fn(),
     ...overrides,
@@ -53,5 +67,21 @@ describe("InfoPanel", () => {
     const { onToggleFav } = renderPanel(PALETTES[0]);
     fireEvent.click(screen.getByRole("button", { name: "收藏" }));
     expect(onToggleFav).toHaveBeenCalled();
+  });
+
+  it("reveals the global tweak sliders and emits onTweak", () => {
+    const { onTweak } = renderPanel(PALETTES[0]);
+    fireEvent.click(screen.getByText("整組微調"));
+    fireEvent.change(screen.getByLabelText("鮮豔度"), {
+      target: { value: "1.3" },
+    });
+    expect(onTweak).toHaveBeenCalledWith(0, 1.3);
+  });
+
+  it("relaxes the WCAG verdict when switching to large text", () => {
+    renderPanel(primaryBorderline());
+    expect(screen.getAllByText("不足").length).toBe(1); // 主色那列
+    fireEvent.click(screen.getByRole("button", { name: "大字" }));
+    expect(screen.queryByText("不足")).toBeNull(); // 大字門檻下過關
   });
 });

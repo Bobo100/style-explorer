@@ -1,5 +1,10 @@
-// UI 文案集中一處,未來要加英文 i18n 時從這裡長 locale。
-export const t = {
+// UI 文案集中一處,支援中 / 英雙語。
+// `t` 預設指向中文(給測試與非 React 環境用);元件透過 useT() 拿當前語系。
+import type { MoodTag } from "./types";
+
+const zh = {
+  langName: "中文",
+  langToggle: "EN",
   appName: "Style Explorer",
   tagline: "給沒學過色彩學的人,也能挑到能用的配色",
   intro:
@@ -14,11 +19,15 @@ export const t = {
   generate: "產生新配色",
   generateHint: "依目前可讀性條件動態生成,保證達標",
   generatedTag: "動態",
+  fromImage: "從圖片取色",
+  fromImageHint: "上傳圖片 / Logo,自動取主色配出一組",
+  imageError: "讀不到這張圖,換一張試試(支援 PNG / JPG / WebP)",
   empty: "沒有符合條件的配色,換個篩選或按上面「產生新配色」",
   favsOnly: "只看收藏",
   favsEmpty: "還沒有收藏。在右側面板按 ♥ 收藏喜歡的配色。",
   fav: "收藏",
   faved: "已收藏",
+  fail: "不足",
   preview: {
     landing: "Landing 頁",
     blog: "部落格",
@@ -28,6 +37,9 @@ export const t = {
     label: "版型",
     colorblind: "色覺",
     cbNormal: "正常",
+    theme: "主題",
+    light: "亮色",
+    dark: "暗色",
   },
   info: {
     scene: "適合什麼情境",
@@ -35,6 +47,10 @@ export const t = {
     roles: "每個顏色用在哪",
     contrast: "可讀性檢查(WCAG)",
     contrastHint: "文字疊在底色上夠不夠清楚。AA 是基本門檻,AAA 更安全。",
+    textSize: "字級",
+    textNormal: "內文",
+    textLarge: "大字",
+    textSizeHint: "大標題(≥18.66px 粗體或 24px)門檻較寬,AA 只需 3:1。",
     export: "匯出這組配色",
     customTag: "已自訂",
     fixAA: "一鍵修到 AA",
@@ -42,6 +58,11 @@ export const t = {
     fixHint: "自動就近微調不達標的顏色,讓它過關。",
     edit: "微調顏色",
     editHint: "點色塊改顏色,即時看預覽與對比。",
+    tweak: "整組微調",
+    tweakHint: "一次調整整組的明暗與鮮豔度;調完可再一鍵修可讀性。",
+    tweakLightness: "明暗",
+    tweakSaturation: "鮮豔度",
+    tweakReset: "歸零",
     share: "複製分享連結",
     shared: "連結已複製!",
   },
@@ -57,17 +78,41 @@ export const t = {
     tailwind: "Tailwind",
     scss: "SCSS",
     json: "JSON",
+    shadcn: "shadcn/ui",
     copy: "複製",
     copied: "已複製!",
     close: "關閉",
-    cssHint: "貼進你的全域 CSS,用 var(--color-primary) 等引用。",
+    cssHint: "貼進你的全域 CSS,用 var(--color-primary)、var(--shadow-md) 等引用。",
     twHint: "貼進 globals.css,即可使用 bg-primary、text-surface 等 utility。",
-    scssHint: "貼進你的 .scss,用 $color-primary 等引用。",
+    scssHint: "貼進你的 .scss,用 $color-primary、$shadow-md 等引用。",
     jsonHint: "W3C Design Tokens 格式,Figma Tokens / Style Dictionary 可直接吃。",
+    shadcnHint: "貼進 shadcn/ui 的 globals.css,已含自動推出的 .dark 深色版。",
   },
   theory: {
     title: "順便懂一點色彩學",
     subtitle: "不背術語,看例子就好",
+    cards: [
+      {
+        title: "對比 Contrast",
+        label: "深 ↔ 淺",
+        body: "深色配淺色,差距越大越好讀。文字跟背景對比不夠,再美的配色都沒用。",
+      },
+      {
+        title: "互補 Complementary",
+        label: "對撞最搶眼",
+        body: "色輪上相對的兩色(藍↔橘、紅↔綠)放一起最跳。適合一主一輔,別五五分。",
+      },
+      {
+        title: "類似 Analogous",
+        label: "相鄰最和諧",
+        body: "色輪上相鄰的顏色(紫→粉、藍→青)天生和諧,整體調性統一、耐看不吵。",
+      },
+      {
+        title: "中性色 Neutral",
+        label: "讓主色發光",
+        body: "灰、米、白本身沒情緒,當背景與骨架,讓那一兩個彩色真正被看見。",
+      },
+    ],
   },
   roleNames: {
     background: "頁底",
@@ -80,4 +125,163 @@ export const t = {
     accent: "強調色",
     accentFg: "強調色上的字",
   } as Record<string, string>,
+  moodNames: {
+    沉穩專業: "沉穩專業",
+    溫暖親切: "溫暖親切",
+    活力新創: "活力新創",
+    極簡黑白: "極簡黑白",
+    自然有機: "自然有機",
+    優雅奢華: "優雅奢華",
+    柔和粉嫩: "柔和粉嫩",
+    科技未來: "科技未來",
+  } as Record<MoodTag, string>,
+  footer: "配色 + 真實預覽 + 白話說明,給每個想把網站弄好看的人。",
 };
+
+const en: typeof zh = {
+  langName: "English",
+  langToggle: "中",
+  appName: "Style Explorer",
+  tagline: "Usable colour palettes for people who never studied colour theory",
+  intro:
+    "Pick a palette, see it live on real layouts, understand why it works, then copy the code in one click.",
+  filterAll: "All",
+  filterLabel: "Style",
+  wcagLabel: "Readability",
+  wcagAll: "Any",
+  wcagAA: "AA+",
+  wcagAAA: "AAA",
+  paletteCount: (n: number) => `${n}`,
+  generate: "Generate palettes",
+  generateHint: "Synthesised to meet the current readability target — guaranteed",
+  generatedTag: "auto",
+  fromImage: "From image",
+  fromImageHint: "Upload an image / logo to extract colours into a palette",
+  imageError: "Couldn't read that image — try another (PNG / JPG / WebP)",
+  empty: "No palettes match. Change the filter or hit “Generate palettes” above.",
+  favsOnly: "Favourites",
+  favsEmpty: "No favourites yet. Tap ♥ in the right panel to save one.",
+  fav: "Save",
+  faved: "Saved",
+  fail: "Fail",
+  preview: {
+    landing: "Landing",
+    blog: "Blog",
+    dashboard: "Dashboard",
+    ecommerce: "Store",
+    form: "Form",
+    label: "Layout",
+    colorblind: "Vision",
+    cbNormal: "Normal",
+    theme: "Theme",
+    light: "Light",
+    dark: "Dark",
+  },
+  info: {
+    scene: "Where it fits",
+    why: "Why it works",
+    roles: "Where each colour goes",
+    contrast: "Readability check (WCAG)",
+    contrastHint:
+      "Whether text on its background is clear enough. AA is the baseline, AAA is safer.",
+    textSize: "Text size",
+    textNormal: "Body",
+    textLarge: "Large",
+    textSizeHint: "Large text (≥18.66px bold or 24px) only needs 3:1 for AA.",
+    export: "Export this palette",
+    customTag: "edited",
+    fixAA: "Fix to AA",
+    fixAAA: "Fix to AAA",
+    fixHint: "Nudges the failing colours the smallest amount to pass.",
+    edit: "Tweak colours",
+    editHint: "Click a swatch to change it; preview and contrast update live.",
+    tweak: "Adjust whole set",
+    tweakHint:
+      "Shift the lightness and vividness of the whole palette at once; re-fix readability after.",
+    tweakLightness: "Lightness",
+    tweakSaturation: "Vividness",
+    tweakReset: "Reset",
+    share: "Copy share link",
+    shared: "Link copied!",
+  },
+  contrast: {
+    textOnBg: "Body / page",
+    textOnSurface: "Body / card",
+    primary: "Primary button text",
+    accent: "Accent text",
+  },
+  exportModal: {
+    title: "Export palette",
+    css: "CSS",
+    tailwind: "Tailwind",
+    scss: "SCSS",
+    json: "JSON",
+    shadcn: "shadcn/ui",
+    copy: "Copy",
+    copied: "Copied!",
+    close: "Close",
+    cssHint: "Paste into your global CSS; use var(--color-primary), var(--shadow-md), etc.",
+    twHint: "Paste into globals.css to get bg-primary, text-surface utilities.",
+    scssHint: "Paste into your .scss; use $color-primary, $shadow-md, etc.",
+    jsonHint:
+      "W3C Design Tokens format — works with Figma Tokens / Style Dictionary.",
+    shadcnHint:
+      "Paste into shadcn/ui globals.css — includes an auto-generated .dark theme.",
+  },
+  theory: {
+    title: "A little colour theory while you're here",
+    subtitle: "No jargon — just examples",
+    cards: [
+      {
+        title: "Contrast",
+        label: "dark ↔ light",
+        body: "Dark on light, the bigger the gap the easier to read. Low text-vs-background contrast ruins even a pretty palette.",
+      },
+      {
+        title: "Complementary",
+        label: "max pop",
+        body: "Opposite colours on the wheel (blue↔orange, red↔green) clash hardest. Use one as lead, one as accent — never 50/50.",
+      },
+      {
+        title: "Analogous",
+        label: "most harmonious",
+        body: "Neighbouring colours (purple→pink, blue→teal) are naturally harmonious — unified, calm, easy on the eyes.",
+      },
+      {
+        title: "Neutral",
+        label: "let the colour shine",
+        body: "Grey, beige and white carry no emotion. As background and structure they let one or two real colours stand out.",
+      },
+    ],
+  },
+  roleNames: {
+    background: "Page",
+    surface: "Card",
+    text: "Body text",
+    muted: "Muted text",
+    border: "Border",
+    primary: "Primary",
+    primaryFg: "On primary",
+    accent: "Accent",
+    accentFg: "On accent",
+  } as Record<string, string>,
+  moodNames: {
+    沉穩專業: "Professional",
+    溫暖親切: "Warm",
+    活力新創: "Energetic",
+    極簡黑白: "Minimal",
+    自然有機: "Organic",
+    優雅奢華: "Luxurious",
+    柔和粉嫩: "Soft pastel",
+    科技未來: "Futuristic",
+  } as Record<MoodTag, string>,
+  footer:
+    "Palette + real preview + plain-language notes, for anyone making a site look good.",
+};
+
+export type Lang = "zh" | "en";
+export type Strings = typeof zh;
+export const dict: Record<Lang, Strings> = { zh, en };
+
+/** 預設中文文案(測試 / 非 React 用);元件請用 useT() */
+export const t = dict.zh;

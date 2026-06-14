@@ -42,6 +42,15 @@ describe("exportCss", () => {
     // 9 個角色 = 9 行 var
     expect(css.match(/--color-/g)?.length).toBe(9);
   });
+
+  it("appends derived gradient + shadow tokens", () => {
+    const css = exportCss(sample);
+    expect(css).toContain(
+      "--gradient-brand: linear-gradient(135deg, #2563eb, #f59e0b);",
+    );
+    expect(css).toContain("--shadow-sm: 0 1px 2px rgba(23, 23, 23, 0.08);");
+    expect(css).toContain("--shadow-md:");
+  });
 });
 
 describe("exportTailwind", () => {

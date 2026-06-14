@@ -1,13 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Sparkles, Check, Heart } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import { Sparkles, Check, Heart, Image as ImageIcon } from "lucide-react";
 import type { MoodTag, Palette } from "@/lib/types";
 import { paletteGrade, meetsGrade } from "@/lib/grade";
 import { isFavorite, paletteSig } from "@/lib/favorites";
+import { extractColors, paletteFromImage } from "@/lib/extract";
 import type { WcagResult } from "@/lib/contrast";
 import type { TargetLevel } from "@/lib/generate";
-import { t } from "@/lib/strings";
+import { useT } from "@/lib/i18n";
 
 const SWATCH_ROLES = [
   "background",
@@ -47,9 +48,48 @@ export default function PaletteGallery({
   onSelect: (p: Palette) => void;
   onGenerate: (level: TargetLevel) => void;
 }) {
+  const t = useT();
   const [mood, setMood] = useState<MoodTag | null>(null);
   const [wcag, setWcag] = useState<"AA" | "AAA" | null>(null);
   const [favsOnly, setFavsOnly] = useState(false);
+  const [imgErr, setImgErr] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // 允許重選同一張
+    if (!file) return;
+    setImgErr(false);
+    const url = URL.createObjectURL(file);
+    const img = new window.Image();
+    img.onload = () => {
+      try {
+        const max = 100; // 縮圖後取色,夠準又快
+        const scale = Math.min(1, max / Math.max(img.width, img.height));
+        const w = Math.max(1, Math.round(img.width * scale));
+        const h = Math.max(1, Math.round(img.height * scale));
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("no canvas ctx");
+        ctx.drawImage(img, 0, 0, w, h);
+        const { data } = ctx.getImageData(0, 0, w, h);
+        const colors = extractColors({ data, width: w, height: h }, 6);
+        if (!colors.length) throw new Error("no colours");
+        onSelect(paletteFromImage(colors));
+      } catch {
+        setImgErr(true);
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    };
+    img.onerror = () => {
+      setImgErr(true);
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
+  };
 
   const list = useMemo(
     () =>
@@ -65,14 +105,32 @@ export default function PaletteGallery({
     <div className="flex h-full flex-col bg-white">
       {/* 篩選 + 產生(固定不滾) */}
       <div className="shrink-0 space-y-3 border-b border-stone-200 p-3">
-        <button
-          onClick={() => onGenerate(wcag ?? "AA")}
-          title={t.generateHint}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-stone-900 py-2 text-sm font-medium text-white transition-colors hover:bg-stone-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900 cursor-pointer"
-        >
-          <Sparkles className="h-4 w-4" />
-          {t.generate}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => onGenerate(wcag ?? "AA")}
+            title={t.generateHint}
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-stone-900 py-2 text-sm font-medium text-white transition-colors hover:bg-stone-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900 cursor-pointer"
+          >
+            <Sparkles className="h-4 w-4" />
+            {t.generate}
+          </button>
+          <button
+            onClick={() => fileRef.current?.click()}
+            title={t.fromImageHint}
+            aria-label={t.fromImage}
+            className="flex items-center justify-center gap-1.5 rounded-lg border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900 cursor-pointer"
+          >
+            <ImageIcon className="h-4 w-4" />
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            onChange={onFile}
+            className="hidden"
+          />
+        </div>
+        {imgErr && <p className="text-xs text-red-600">{t.imageError}</p>}
 
         <button
           onClick={() => setFavsOnly((v) => !v)}
@@ -109,7 +167,7 @@ export default function PaletteGallery({
               active={mood === m}
               onClick={() => setMood(mood === m ? null : m)}
             >
-              {m}
+              {t.moodNames[m] ?? m}
             </Chip>
           ))}
         </Filter>
@@ -162,7 +220,7 @@ export default function PaletteGallery({
                   <span
                     className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${GRADE_STYLE[grade]}`}
                   >
-                    {grade === "Fail" ? "不足" : grade}
+                    {grade === "Fail" ? t.fail : grade}
                   </span>
                 </span>
               </div>

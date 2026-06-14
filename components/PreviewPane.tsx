@@ -1,31 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Eye } from "lucide-react";
+import { Eye, Sun, Moon } from "lucide-react";
 import { ROLES, type Palette, type TemplateKey } from "@/lib/types";
 import { paletteStyleVars } from "@/lib/css-vars";
 import { simulate, CB_LABELS, type CbType } from "@/lib/colorblind";
-import { t } from "@/lib/strings";
+import { toDark } from "@/lib/dark";
+import { useT } from "@/lib/i18n";
 import LandingTemplate from "./templates/LandingTemplate";
 import BlogTemplate from "./templates/BlogTemplate";
 import DashboardTemplate from "./templates/DashboardTemplate";
 import EcommerceTemplate from "./templates/EcommerceTemplate";
 import FormTemplate from "./templates/FormTemplate";
-
-const TABS: { key: TemplateKey; label: string }[] = [
-  { key: "landing", label: t.preview.landing },
-  { key: "blog", label: t.preview.blog },
-  { key: "dashboard", label: t.preview.dashboard },
-  { key: "ecommerce", label: t.preview.ecommerce },
-  { key: "form", label: t.preview.form },
-];
-
-const CB_OPTIONS: { key: CbType | "none"; label: string }[] = [
-  { key: "none", label: t.preview.cbNormal },
-  { key: "protanopia", label: CB_LABELS.protanopia },
-  { key: "deuteranopia", label: CB_LABELS.deuteranopia },
-  { key: "tritanopia", label: CB_LABELS.tritanopia },
-];
 
 function simulatedVars(palette: Palette, cb: CbType) {
   const roles = { ...palette.roles };
@@ -42,14 +28,32 @@ export default function PreviewPane({
   template: TemplateKey;
   onTemplateChange: (t: TemplateKey) => void;
 }) {
+  const t = useT();
   const [cb, setCb] = useState<CbType | "none">("none");
+  const [dark, setDark] = useState(false);
 
+  const TABS: { key: TemplateKey; label: string }[] = [
+    { key: "landing", label: t.preview.landing },
+    { key: "blog", label: t.preview.blog },
+    { key: "dashboard", label: t.preview.dashboard },
+    { key: "ecommerce", label: t.preview.ecommerce },
+    { key: "form", label: t.preview.form },
+  ];
+
+  const CB_OPTIONS: { key: CbType | "none"; label: string }[] = [
+    { key: "none", label: t.preview.cbNormal },
+    { key: "protanopia", label: CB_LABELS.protanopia },
+    { key: "deuteranopia", label: CB_LABELS.deuteranopia },
+    { key: "tritanopia", label: CB_LABELS.tritanopia },
+  ];
+
+  const active = dark ? toDark(palette) : palette;
   const vars =
-    cb === "none" ? paletteStyleVars(palette) : simulatedVars(palette, cb);
+    cb === "none" ? paletteStyleVars(active) : simulatedVars(active, cb);
 
   return (
     <div className="flex h-full flex-col">
-      {/* 工具列:版型切換 + 色覺模擬 */}
+      {/* 工具列:版型切換 + 亮暗 + 色覺模擬 */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-stone-200 bg-white px-3 py-2">
         <div className="flex items-center gap-1">
           <span className="mr-1 text-xs font-medium text-stone-400">
@@ -69,6 +73,36 @@ export default function PreviewPane({
               {tab.label}
             </button>
           ))}
+        </div>
+
+        <div className="flex items-center gap-1">
+          <span className="mr-1 text-xs font-medium text-stone-400">
+            {t.preview.theme}
+          </span>
+          <button
+            onClick={() => setDark(false)}
+            aria-pressed={!dark}
+            className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium transition-colors cursor-pointer ${
+              !dark
+                ? "bg-stone-900 text-white"
+                : "bg-stone-100 text-stone-500 hover:bg-stone-200"
+            }`}
+          >
+            <Sun className="h-3.5 w-3.5" />
+            {t.preview.light}
+          </button>
+          <button
+            onClick={() => setDark(true)}
+            aria-pressed={dark}
+            className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium transition-colors cursor-pointer ${
+              dark
+                ? "bg-stone-900 text-white"
+                : "bg-stone-100 text-stone-500 hover:bg-stone-200"
+            }`}
+          >
+            <Moon className="h-3.5 w-3.5" />
+            {t.preview.dark}
+          </button>
         </div>
 
         <div className="flex items-center gap-1">
