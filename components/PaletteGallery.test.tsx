@@ -9,6 +9,7 @@ function setup(props = {}) {
   render(
     <PaletteGallery
       palettes={PALETTES}
+      favorites={[]}
       selectedId=""
       onSelect={onSelect}
       onGenerate={onGenerate}
@@ -54,6 +55,7 @@ describe("PaletteGallery", () => {
     render(
       <PaletteGallery
         palettes={[PALETTES.find((p) => p.id === "startup-orange")!]}
+        favorites={[]}
         selectedId=""
         onSelect={onSelect}
         onGenerate={vi.fn()}
@@ -61,5 +63,13 @@ describe("PaletteGallery", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "AAA" }));
     expect(screen.queryByText("電光橘")).toBeNull();
+  });
+
+  it("only shows favorites when '只看收藏' is on", () => {
+    setup({ favorites: [PALETTES.find((p) => p.id === "forest")!] });
+    expect(screen.getByText("午夜藍")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /只看收藏/ }));
+    expect(screen.queryByText("午夜藍")).toBeNull(); // 沒收藏,被濾掉
+    expect(screen.getByText("森林")).toBeInTheDocument(); // 有收藏,留著
   });
 });

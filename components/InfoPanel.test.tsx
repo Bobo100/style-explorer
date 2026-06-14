@@ -15,19 +15,28 @@ function broken(): Palette {
   };
 }
 
+function renderPanel(palette: Palette, overrides = {}) {
+  const props = {
+    palette,
+    onEdit: vi.fn(),
+    onAutoFix: vi.fn(),
+    isFav: false,
+    onToggleFav: vi.fn(),
+    ...overrides,
+  };
+  render(<InfoPanel {...props} />);
+  return props;
+}
+
 describe("InfoPanel", () => {
   it("offers auto-fix on a sub-AAA palette and reports the chosen level", () => {
-    const onAutoFix = vi.fn();
-    render(
-      <InfoPanel palette={broken()} onEdit={vi.fn()} onAutoFix={onAutoFix} />,
-    );
+    const { onAutoFix } = renderPanel(broken());
     fireEvent.click(screen.getByText("一鍵修到 AAA"));
     expect(onAutoFix).toHaveBeenCalledWith("AAA");
   });
 
   it("emits edits from the colour pickers", () => {
-    const onEdit = vi.fn();
-    render(<InfoPanel palette={broken()} onEdit={onEdit} onAutoFix={vi.fn()} />);
+    const { onEdit } = renderPanel(broken());
     fireEvent.click(screen.getByText("微調顏色"));
     fireEvent.change(screen.getByLabelText("主色"), {
       target: { value: "#123456" },
@@ -36,8 +45,13 @@ describe("InfoPanel", () => {
   });
 
   it("hides fix buttons when the palette is already AAA", () => {
-    const aaa = PALETTES.find((p) => p.id === "pure-mono")!; // 全黑白,AAA
-    render(<InfoPanel palette={aaa} onEdit={vi.fn()} onAutoFix={vi.fn()} />);
+    renderPanel(PALETTES.find((p) => p.id === "pure-mono")!);
     expect(screen.queryByText("一鍵修到 AAA")).toBeNull();
+  });
+
+  it("toggles favorite", () => {
+    const { onToggleFav } = renderPanel(PALETTES[0]);
+    fireEvent.click(screen.getByRole("button", { name: "收藏" }));
+    expect(onToggleFav).toHaveBeenCalled();
   });
 });

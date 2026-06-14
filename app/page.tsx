@@ -5,6 +5,12 @@ import { PALETTES } from "@/lib/palettes";
 import { generateBatch, type TargetLevel } from "@/lib/generate";
 import { setRole, autoFix } from "@/lib/adjust";
 import { encodeState, decodeState } from "@/lib/share";
+import {
+  loadFavorites,
+  saveFavorites,
+  toggleFavorite,
+  isFavorite,
+} from "@/lib/favorites";
 import type { Palette, Role, TemplateKey } from "@/lib/types";
 import PaletteGallery from "@/components/PaletteGallery";
 import PreviewPane from "@/components/PreviewPane";
@@ -17,13 +23,15 @@ export default function Home() {
   const [seed, setSeed] = useState(0);
   const [palette, setPalette] = useState<Palette>(PALETTES[0]);
   const [template, setTemplate] = useState<TemplateKey>("landing");
+  const [favorites, setFavorites] = useState<Palette[]>([]);
   const ready = useRef(false);
 
-  // 還原分享連結(只在掛載時跑一次)
+  // 掛載時:還原分享連結 + 載入收藏(只跑一次)
   useEffect(() => {
     const { palette: p, template: tk } = decodeState(window.location.search);
     if (p) setPalette(p);
     if (tk) setTemplate(tk);
+    setFavorites(loadFavorites());
     ready.current = true;
   }, []);
 
@@ -32,6 +40,12 @@ export default function Home() {
     if (!ready.current) return;
     window.history.replaceState(null, "", "?" + encodeState(palette, template));
   }, [palette, template]);
+
+  // 收藏變動時存回 localStorage
+  useEffect(() => {
+    if (!ready.current) return;
+    saveFavorites(favorites);
+  }, [favorites]);
 
   // 動態產生的放最上面,新的一眼看得到
   const all = useMemo(() => [...generated, ...PALETTES], [generated]);
@@ -49,6 +63,7 @@ export default function Home() {
   const editRole = (role: Role, hex: string) =>
     setPalette((p) => setRole(p, role, hex));
   const fix = (level: "AA" | "AAA") => setPalette((p) => autoFix(p, level));
+  const toggleFav = () => setFavorites((prev) => toggleFavorite(prev, palette));
 
   return (
     <div className="flex min-h-screen flex-col bg-stone-50 text-stone-900">
@@ -64,6 +79,7 @@ export default function Home() {
         <div className="h-[46vh] shrink-0 border-b border-stone-200 lg:h-full lg:min-h-0 lg:w-80 lg:border-b-0 lg:border-r">
           <PaletteGallery
             palettes={all}
+            favorites={favorites}
             selectedId={palette.id}
             onSelect={setPalette}
             onGenerate={handleGenerate}
@@ -79,7 +95,13 @@ export default function Home() {
         </div>
 
         <div className="border-t border-stone-200 lg:h-full lg:w-85 lg:shrink-0 lg:border-l lg:border-t-0">
-          <InfoPanel palette={palette} onEdit={editRole} onAutoFix={fix} />
+          <InfoPanel
+            palette={palette}
+            onEdit={editRole}
+            onAutoFix={fix}
+            isFav={isFavorite(favorites, palette)}
+            onToggleFav={toggleFav}
+          />
         </div>
       </main>
 

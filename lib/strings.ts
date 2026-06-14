@@ -15,6 +15,10 @@ export const t = {
   generateHint: "依目前可讀性條件動態生成,保證達標",
   generatedTag: "動態",
   empty: "沒有符合條件的配色,換個篩選或按上面「產生新配色」",
+  favsOnly: "只看收藏",
+  favsEmpty: "還沒有收藏。在右側面板按 ♥ 收藏喜歡的配色。",
+  fav: "收藏",
+  faved: "已收藏",
   preview: {
     landing: "Landing 頁",
     blog: "部落格",

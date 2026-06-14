@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Download, Wand2, Pencil, Share2, Check } from "lucide-react";
+import { Download, Wand2, Pencil, Share2, Check, Heart } from "lucide-react";
 import type { Palette, Role } from "@/lib/types";
 import { ROLES } from "@/lib/types";
 import { contrastRatio, wcagLevel, type WcagResult } from "@/lib/contrast";
@@ -55,10 +55,14 @@ export default function InfoPanel({
   palette,
   onEdit,
   onAutoFix,
+  isFav,
+  onToggleFav,
 }: {
   palette: Palette;
   onEdit: (role: Role, hex: string) => void;
   onAutoFix: (level: "AA" | "AAA") => void;
+  isFav: boolean;
+  onToggleFav: () => void;
 }) {
   const [exportOpen, setExportOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -204,17 +208,31 @@ export default function InfoPanel({
       </div>
 
       <div className="sticky bottom-0 mt-auto space-y-2 border-t border-stone-200 bg-white p-4">
-        <button
-          onClick={share}
-          className="flex w-full items-center justify-center gap-2 rounded-lg border border-stone-300 py-2 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-50 cursor-pointer"
-        >
-          {shared ? (
-            <Check className="h-4 w-4" />
-          ) : (
-            <Share2 className="h-4 w-4" />
-          )}
-          {shared ? t.info.shared : t.info.share}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={onToggleFav}
+            aria-pressed={isFav}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-lg border py-2 text-sm font-medium transition-colors cursor-pointer ${
+              isFav
+                ? "border-rose-200 bg-rose-50 text-rose-600"
+                : "border-stone-300 text-stone-700 hover:bg-stone-50"
+            }`}
+          >
+            <Heart className={`h-4 w-4 ${isFav ? "fill-current" : ""}`} />
+            {isFav ? t.faved : t.fav}
+          </button>
+          <button
+            onClick={share}
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-stone-300 py-2 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-50 cursor-pointer"
+          >
+            {shared ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              <Share2 className="h-4 w-4" />
+            )}
+            {shared ? t.info.shared : t.info.share}
+          </button>
+        </div>
         <button
           onClick={() => setExportOpen(true)}
           className="flex w-full items-center justify-center gap-2 rounded-lg bg-stone-900 py-2.5 text-sm font-medium text-white transition-colors hover:bg-stone-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900 cursor-pointer"

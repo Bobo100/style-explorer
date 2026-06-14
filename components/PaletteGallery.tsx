@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Sparkles, Check } from "lucide-react";
+import { Sparkles, Check, Heart } from "lucide-react";
 import type { MoodTag, Palette } from "@/lib/types";
 import { paletteGrade, meetsGrade } from "@/lib/grade";
+import { isFavorite, paletteSig } from "@/lib/favorites";
 import type { WcagResult } from "@/lib/contrast";
 import type { TargetLevel } from "@/lib/generate";
 import { t } from "@/lib/strings";
@@ -35,26 +36,29 @@ const GRADE_STYLE: Record<WcagResult, string> = {
 
 export default function PaletteGallery({
   palettes,
+  favorites,
   selectedId,
   onSelect,
   onGenerate,
 }: {
   palettes: Palette[];
+  favorites: Palette[];
   selectedId: string;
   onSelect: (p: Palette) => void;
   onGenerate: (level: TargetLevel) => void;
 }) {
   const [mood, setMood] = useState<MoodTag | null>(null);
   const [wcag, setWcag] = useState<"AA" | "AAA" | null>(null);
+  const [favsOnly, setFavsOnly] = useState(false);
 
   const list = useMemo(
     () =>
-      palettes.filter(
+      (favsOnly ? favorites : palettes).filter(
         (p) =>
           (mood === null || p.moods.includes(mood)) &&
           (wcag === null || meetsGrade(p, wcag)),
       ),
-    [palettes, mood, wcag],
+    [palettes, favorites, favsOnly, mood, wcag],
   );
 
   return (
@@ -68,6 +72,19 @@ export default function PaletteGallery({
         >
           <Sparkles className="h-4 w-4" />
           {t.generate}
+        </button>
+
+        <button
+          onClick={() => setFavsOnly((v) => !v)}
+          aria-pressed={favsOnly}
+          className={`flex w-full items-center justify-center gap-2 rounded-lg border py-1.5 text-sm font-medium transition-colors cursor-pointer ${
+            favsOnly
+              ? "border-rose-200 bg-rose-50 text-rose-600"
+              : "border-stone-200 text-stone-600 hover:bg-stone-50"
+          }`}
+        >
+          <Heart className={`h-3.5 w-3.5 ${favsOnly ? "fill-current" : ""}`} />
+          {t.favsOnly} {favorites.length > 0 && `(${favorites.length})`}
         </button>
 
         <Filter label={t.wcagLabel}>
@@ -102,15 +119,16 @@ export default function PaletteGallery({
       <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
         {list.length === 0 && (
           <p className="px-1 py-8 text-center text-sm text-stone-400">
-            {t.empty}
+            {favsOnly && favorites.length === 0 ? t.favsEmpty : t.empty}
           </p>
         )}
         {list.map((p) => {
           const grade = paletteGrade(p);
           const selected = selectedId === p.id;
+          const faved = isFavorite(favorites, p);
           return (
             <button
-              key={p.id}
+              key={paletteSig(p)}
               onClick={() => onSelect(p)}
               className={`block w-full rounded-xl border p-3 text-left transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900 ${
                 selected
@@ -133,6 +151,9 @@ export default function PaletteGallery({
                   {p.name}
                 </span>
                 <span className="flex shrink-0 items-center gap-1">
+                  {faved && (
+                    <Heart className="h-3 w-3 fill-rose-500 text-rose-500" />
+                  )}
                   {p.generated && (
                     <span className="rounded bg-violet-100 px-1.5 py-0.5 text-[10px] font-medium text-violet-700">
                       {t.generatedTag}
