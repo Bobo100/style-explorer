@@ -1,26 +1,40 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
+/* 配色角色 → Tailwind utility。值指向 scope 元素上的 --app-*,
+   所以 preview 內 bg-primary / text-surface 會跟著選中的 palette 即時變。 */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--app-background);
+  --color-surface: var(--app-surface);
+  --color-text: var(--app-text);
+  --color-muted: var(--app-muted);
+  --color-border: var(--app-border);
+  --color-primary: var(--app-primary);
+  --color-primary-fg: var(--app-primary-fg);
+  --color-accent: var(--app-accent);
+  --color-accent-fg: var(--app-accent-fg);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  /* fallback 預設(午夜藍)—— preview 外的地方有值可用 */
+  --app-background: #f8fafc;
+  --app-surface: #ffffff;
+  --app-text: #0f172a;
+  --app-muted: #475569;
+  --app-border: #e2e8f0;
+  --app-primary: #1e3a8a;
+  --app-primary-fg: #ffffff;
+  --app-accent: #0e7490;
+  --app-accent-fg: #ffffff;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* 細捲軸,讓三欄不那麼笨重 */
+* {
+  scrollbar-width: thin;
 }

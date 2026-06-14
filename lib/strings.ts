@@ -1,0 +1,55 @@
+// UI 文案集中一處,未來要加英文 i18n 時從這裡長 locale。
+export const t = {
+  appName: "Style Explorer",
+  tagline: "給沒學過色彩學的人,也能挑到能用的配色",
+  intro:
+    "選一組配色,即時看它套到真實版型的樣子,讀懂為什麼好看,然後一鍵帶走 code。",
+  filterAll: "全部",
+  filterLabel: "依風格篩選",
+  paletteCount: (n: number) => `${n} 組配色`,
+  preview: {
+    landing: "Landing 頁",
+    blog: "部落格",
+    dashboard: "儀表板",
+    label: "預覽版型",
+  },
+  info: {
+    scene: "適合什麼情境",
+    why: "為什麼這樣搭好看",
+    roles: "每個顏色用在哪",
+    contrast: "可讀性檢查(WCAG)",
+    contrastHint: "文字疊在底色上夠不夠清楚。AA 是基本門檻,AAA 更安全。",
+    export: "匯出這組配色",
+  },
+  contrast: {
+    textOnBg: "內文 / 頁底",
+    textOnSurface: "內文 / 卡片",
+    primary: "主色按鈕文字",
+    accent: "強調色文字",
+  },
+  exportModal: {
+    title: "匯出配色",
+    css: "CSS variables",
+    tailwind: "Tailwind v4",
+    copy: "複製",
+    copied: "已複製!",
+    close: "關閉",
+    cssHint: "貼進你的全域 CSS,用 var(--color-primary) 等引用。",
+    twHint: "貼進 globals.css,即可使用 bg-primary、text-surface 等 utility。",
+  },
+  theory: {
+    title: "順便懂一點色彩學",
+    subtitle: "不背術語,看例子就好",
+  },
+  roleNames: {
+    background: "頁底",
+    surface: "卡片底",
+    text: "主文字",
+    muted: "次要文字",
+    border: "邊框",
+    primary: "主色",
+    primaryFg: "主色上的字",
+    accent: "強調色",
+    accentFg: "強調色上的字",
+  } as Record<string, string>,
+};
