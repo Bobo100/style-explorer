@@ -5,8 +5,16 @@ export const t = {
   intro:
     "選一組配色,即時看它套到真實版型的樣子,讀懂為什麼好看,然後一鍵帶走 code。",
   filterAll: "全部",
-  filterLabel: "依風格篩選",
-  paletteCount: (n: number) => `${n} 組配色`,
+  filterLabel: "風格",
+  wcagLabel: "可讀性",
+  wcagAll: "不限",
+  wcagAA: "AA+",
+  wcagAAA: "AAA",
+  paletteCount: (n: number) => `${n} 組`,
+  generate: "產生新配色",
+  generateHint: "依目前可讀性條件動態生成,保證達標",
+  generatedTag: "動態",
+  empty: "沒有符合條件的配色,換個篩選或按上面「產生新配色」",
   preview: {
     landing: "Landing 頁",
     blog: "部落格",

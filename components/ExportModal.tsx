@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { X, Copy, Check } from "lucide-react";
 import type { Palette } from "@/lib/types";
 import { exportCss } from "@/lib/export-css";
 import { exportTailwind } from "@/lib/export-tailwind";
@@ -65,9 +66,10 @@ export default function ExportModal({
           </h3>
           <button
             onClick={onClose}
-            className="text-sm text-stone-400 hover:text-stone-700"
+            aria-label={t.exportModal.close}
+            className="text-stone-400 transition-colors hover:text-stone-700 cursor-pointer"
           >
-            ✕
+            <X className="h-5 w-5" />
           </button>
         </div>
 
@@ -76,7 +78,7 @@ export default function ExportModal({
             <button
               key={f}
               onClick={() => setFormat(f)}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer ${
                 format === f
                   ? "bg-stone-900 text-white"
                   : "text-stone-600 hover:bg-stone-100"
@@ -97,14 +99,19 @@ export default function ExportModal({
         <div className="flex justify-end gap-2 px-5 py-4">
           <button
             onClick={onClose}
-            className="rounded-lg px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-100"
+            className="rounded-lg px-4 py-2 text-sm font-medium text-stone-600 transition-colors hover:bg-stone-100 cursor-pointer"
           >
             {t.exportModal.close}
           </button>
           <button
             onClick={copy}
-            className="rounded-lg bg-stone-900 px-4 py-2 text-sm font-medium text-white hover:bg-stone-700"
+            className="flex items-center gap-1.5 rounded-lg bg-stone-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-stone-700 cursor-pointer"
           >
+            {copied ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              <Copy className="h-4 w-4" />
+            )}
             {copied ? t.exportModal.copied : t.exportModal.copy}
           </button>
         </div>

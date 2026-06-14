@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Download } from "lucide-react";
 import type { Palette, Role } from "@/lib/types";
 import { contrastRatio, wcagLevel, type WcagResult } from "@/lib/contrast";
 import { t } from "@/lib/strings";
@@ -128,8 +129,9 @@ export default function InfoPanel({ palette }: { palette: Palette }) {
       <div className="sticky bottom-0 mt-auto border-t border-stone-200 bg-white p-4">
         <button
           onClick={() => setExportOpen(true)}
-          className="w-full rounded-lg bg-stone-900 py-2.5 text-sm font-medium text-white hover:bg-stone-700"
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-stone-900 py-2.5 text-sm font-medium text-white transition-colors hover:bg-stone-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900 cursor-pointer"
         >
+          <Download className="h-4 w-4" />
           {t.info.export}
         </button>
       </div>

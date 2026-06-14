@@ -1,3 +1,7 @@
+import { Zap, CalendarClock, BarChart3 } from "lucide-react";
+
+const FEATURE_ICONS = [Zap, CalendarClock, BarChart3];
+
 // 示範版型:Landing 頁。只用 palette 角色 utility,換配色即時反映。
 export default function LandingTemplate() {
   return (
@@ -46,18 +50,21 @@ export default function LandingTemplate() {
           { t: "即時協作", d: "團隊改動同步更新,不怕版本打架。" },
           { t: "自動排程", d: "把重複的事交給系統,專心做重要的。" },
           { t: "數據洞察", d: "一眼看懂進度與瓶頸在哪。" },
-        ].map((f) => (
-          <div
-            key={f.t}
-            className="rounded-xl border border-border bg-surface p-5"
-          >
-            <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-accent-fg">
-              ★
+        ].map((f, i) => {
+          const Icon = FEATURE_ICONS[i];
+          return (
+            <div
+              key={f.t}
+              className="rounded-xl border border-border bg-surface p-5"
+            >
+              <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-accent-fg">
+                <Icon className="h-5 w-5" />
+              </div>
+              <h3 className="font-semibold">{f.t}</h3>
+              <p className="mt-1 text-sm text-muted">{f.d}</p>
             </div>
-            <h3 className="font-semibold">{f.t}</h3>
-            <p className="mt-1 text-sm text-muted">{f.d}</p>
-          </div>
-        ))}
+          );
+        })}
       </section>
 
       <footer className="border-t border-border px-8 py-6 text-center text-sm text-muted">

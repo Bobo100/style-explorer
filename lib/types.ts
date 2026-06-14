@@ -40,4 +40,5 @@ export interface Palette {
   blurb: string; // 情境:適合什麼網站 / 品牌
   why: string; // 為何好看(白話,不用術語)
   roleUsage: Partial<Record<Role, string>>; // 各角色用在哪的白話說明
+  generated?: boolean; // true = 動態產生(非策展)
 }

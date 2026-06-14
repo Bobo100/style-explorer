@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { PALETTES } from "@/lib/palettes";
+import { generateBatch, type TargetLevel } from "@/lib/generate";
 import type { Palette } from "@/lib/types";
 import PaletteGallery from "@/components/PaletteGallery";
 import PreviewPane from "@/components/PreviewPane";
@@ -10,7 +11,22 @@ import ColorTheoryCards from "@/components/ColorTheoryCards";
 import { t } from "@/lib/strings";
 
 export default function Home() {
+  const [generated, setGenerated] = useState<Palette[]>([]);
+  const [seed, setSeed] = useState(0);
   const [palette, setPalette] = useState<Palette>(PALETTES[0]);
+
+  // 動態產生的放最上面,新的一眼看得到
+  const all = useMemo(() => [...generated, ...PALETTES], [generated]);
+
+  const handleGenerate = (level: TargetLevel) => {
+    const batch = generateBatch(6, level, seed);
+    setGenerated((prev) => {
+      const seen = new Set(prev.map((p) => p.id));
+      return [...batch.filter((p) => !seen.has(p.id)), ...prev];
+    });
+    setSeed((s) => s + 6);
+    setPalette(batch[0]);
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-stone-50 text-stone-900">
@@ -23,10 +39,12 @@ export default function Home() {
       </header>
 
       <main className="flex flex-1 flex-col lg:h-[calc(100vh-150px)] lg:flex-row lg:overflow-hidden">
-        <div className="max-h-[44vh] border-b border-stone-200 lg:max-h-full lg:w-80 lg:shrink-0 lg:border-b-0 lg:border-r">
+        <div className="h-[46vh] shrink-0 border-b border-stone-200 lg:h-auto lg:w-80 lg:border-b-0 lg:border-r">
           <PaletteGallery
+            palettes={all}
             selectedId={palette.id}
             onSelect={setPalette}
+            onGenerate={handleGenerate}
           />
         </div>
 

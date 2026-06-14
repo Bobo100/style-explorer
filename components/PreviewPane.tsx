@@ -30,7 +30,7 @@ export default function PreviewPane({ palette }: { palette: Palette }) {
           <button
             key={tabItem.key}
             onClick={() => setTab(tabItem.key)}
-            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer ${
               tab === tabItem.key
                 ? "bg-stone-900 text-white"
                 : "text-stone-600 hover:bg-stone-100"
