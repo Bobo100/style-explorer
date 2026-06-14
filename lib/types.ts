@@ -22,6 +22,21 @@ export const ROLES: Role[] = [
   "accentFg",
 ];
 
+export type TemplateKey =
+  | "landing"
+  | "blog"
+  | "dashboard"
+  | "ecommerce"
+  | "form";
+
+export const TEMPLATE_KEYS: TemplateKey[] = [
+  "landing",
+  "blog",
+  "dashboard",
+  "ecommerce",
+  "form",
+];
+
 export type MoodTag =
   | "沉穩專業"
   | "溫暖親切"
@@ -41,4 +56,5 @@ export interface Palette {
   why: string; // 為何好看(白話,不用術語)
   roleUsage: Partial<Record<Role, string>>; // 各角色用在哪的白話說明
   generated?: boolean; // true = 動態產生(非策展)
+  custom?: boolean; // true = 使用者自訂微調過
 }

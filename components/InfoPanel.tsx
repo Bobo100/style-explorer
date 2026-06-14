@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Download } from "lucide-react";
+import { Download, Wand2, Pencil, Share2, Check } from "lucide-react";
 import type { Palette, Role } from "@/lib/types";
+import { ROLES } from "@/lib/types";
 import { contrastRatio, wcagLevel, type WcagResult } from "@/lib/contrast";
+import { meetsGrade } from "@/lib/grade";
 import { t } from "@/lib/strings";
 import ExportModal from "./ExportModal";
 
@@ -49,15 +51,45 @@ function ContrastRow({
   );
 }
 
-export default function InfoPanel({ palette }: { palette: Palette }) {
+export default function InfoPanel({
+  palette,
+  onEdit,
+  onAutoFix,
+}: {
+  palette: Palette;
+  onEdit: (role: Role, hex: string) => void;
+  onAutoFix: (level: "AA" | "AAA") => void;
+}) {
   const [exportOpen, setExportOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [shared, setShared] = useState(false);
   const usageEntries = Object.entries(palette.roleUsage) as [Role, string][];
+
+  const isAA = meetsGrade(palette, "AA");
+  const isAAA = meetsGrade(palette, "AAA");
+
+  const share = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setShared(true);
+      setTimeout(() => setShared(false), 1500);
+    } catch {
+      // 剪貼簿不可用時靜默
+    }
+  };
 
   return (
     <div className="flex h-full flex-col overflow-auto bg-white">
       <div className="space-y-6 p-5">
         <div>
-          <h2 className="text-lg font-bold text-stone-900">{palette.name}</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-bold text-stone-900">{palette.name}</h2>
+            {palette.custom && (
+              <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[11px] font-medium text-violet-700">
+                {t.info.customTag}
+              </span>
+            )}
+          </div>
           <div className="mt-1.5 flex flex-wrap gap-1">
             {palette.moods.map((m) => (
               <span
@@ -102,10 +134,55 @@ export default function InfoPanel({ palette }: { palette: Palette }) {
             fg={palette.roles.accentFg}
             bg={palette.roles.accent}
           />
+
+          {!isAAA && (
+            <div className="mt-2.5">
+              <div className="flex gap-2">
+                {!isAA && (
+                  <FixButton onClick={() => onAutoFix("AA")}>
+                    {t.info.fixAA}
+                  </FixButton>
+                )}
+                <FixButton onClick={() => onAutoFix("AAA")}>
+                  {t.info.fixAAA}
+                </FixButton>
+              </div>
+              <p className="mt-1.5 text-xs text-stone-400">{t.info.fixHint}</p>
+            </div>
+          )}
         </Section>
 
-        {usageEntries.length > 0 && (
-          <Section title={t.info.roles}>
+        <Section title={t.info.roles}>
+          <button
+            onClick={() => setEditOpen((v) => !v)}
+            aria-expanded={editOpen}
+            className="mb-2 flex items-center gap-1.5 text-sm font-medium text-stone-700 transition-colors hover:text-stone-900 cursor-pointer"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+            {t.info.edit}
+          </button>
+
+          {editOpen && (
+            <div className="mb-3 grid grid-cols-2 gap-2 rounded-lg bg-stone-50 p-3">
+              {ROLES.map((role) => (
+                <label
+                  key={role}
+                  className="flex items-center gap-2 text-xs text-stone-600"
+                >
+                  <input
+                    type="color"
+                    value={palette.roles[role]}
+                    onChange={(e) => onEdit(role, e.target.value)}
+                    aria-label={t.roleNames[role] ?? role}
+                    className="h-7 w-7 shrink-0 cursor-pointer rounded border border-stone-200 bg-white"
+                  />
+                  <span className="truncate">{t.roleNames[role] ?? role}</span>
+                </label>
+              ))}
+            </div>
+          )}
+
+          {usageEntries.length > 0 && (
             <div className="space-y-2.5">
               {usageEntries.map(([role, desc]) => (
                 <div key={role} className="flex gap-2.5">
@@ -122,11 +199,22 @@ export default function InfoPanel({ palette }: { palette: Palette }) {
                 </div>
               ))}
             </div>
-          </Section>
-        )}
+          )}
+        </Section>
       </div>
 
-      <div className="sticky bottom-0 mt-auto border-t border-stone-200 bg-white p-4">
+      <div className="sticky bottom-0 mt-auto space-y-2 border-t border-stone-200 bg-white p-4">
+        <button
+          onClick={share}
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-stone-300 py-2 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-50 cursor-pointer"
+        >
+          {shared ? (
+            <Check className="h-4 w-4" />
+          ) : (
+            <Share2 className="h-4 w-4" />
+          )}
+          {shared ? t.info.shared : t.info.share}
+        </button>
         <button
           onClick={() => setExportOpen(true)}
           className="flex w-full items-center justify-center gap-2 rounded-lg bg-stone-900 py-2.5 text-sm font-medium text-white transition-colors hover:bg-stone-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900 cursor-pointer"
@@ -142,6 +230,24 @@ export default function InfoPanel({ palette }: { palette: Palette }) {
         onClose={() => setExportOpen(false)}
       />
     </div>
+  );
+}
+
+function FixButton({
+  onClick,
+  children,
+}: {
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-emerald-600 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 cursor-pointer"
+    >
+      <Wand2 className="h-3.5 w-3.5" />
+      {children}
+    </button>
   );
 }
 

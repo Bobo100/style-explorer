@@ -5,9 +5,32 @@ import { X, Copy, Check } from "lucide-react";
 import type { Palette } from "@/lib/types";
 import { exportCss } from "@/lib/export-css";
 import { exportTailwind } from "@/lib/export-tailwind";
+import { exportScss } from "@/lib/export-scss";
+import { exportJson } from "@/lib/export-json";
 import { t } from "@/lib/strings";
 
-type Format = "css" | "tailwind";
+type Format = "css" | "tailwind" | "scss" | "json";
+
+const FORMATS: { key: Format; label: string }[] = [
+  { key: "css", label: t.exportModal.css },
+  { key: "tailwind", label: t.exportModal.tailwind },
+  { key: "scss", label: t.exportModal.scss },
+  { key: "json", label: t.exportModal.json },
+];
+
+const RENDER: Record<Format, (p: Palette) => string> = {
+  css: exportCss,
+  tailwind: exportTailwind,
+  scss: exportScss,
+  json: exportJson,
+};
+
+const HINTS: Record<Format, string> = {
+  css: t.exportModal.cssHint,
+  tailwind: t.exportModal.twHint,
+  scss: t.exportModal.scssHint,
+  json: t.exportModal.jsonHint,
+};
 
 export default function ExportModal({
   palette,
@@ -37,9 +60,8 @@ export default function ExportModal({
 
   if (!open) return null;
 
-  const code = format === "css" ? exportCss(palette) : exportTailwind(palette);
-  const hint =
-    format === "css" ? t.exportModal.cssHint : t.exportModal.twHint;
+  const code = RENDER[format](palette);
+  const hint = HINTS[format];
 
   const copy = async () => {
     try {
@@ -74,17 +96,18 @@ export default function ExportModal({
         </div>
 
         <div className="flex gap-1 px-5 pt-4">
-          {(["css", "tailwind"] as Format[]).map((f) => (
+          {FORMATS.map((f) => (
             <button
-              key={f}
-              onClick={() => setFormat(f)}
+              key={f.key}
+              onClick={() => setFormat(f.key)}
+              aria-pressed={format === f.key}
               className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer ${
-                format === f
+                format === f.key
                   ? "bg-stone-900 text-white"
                   : "text-stone-600 hover:bg-stone-100"
               }`}
             >
-              {f === "css" ? t.exportModal.css : t.exportModal.tailwind}
+              {f.label}
             </button>
           ))}
         </div>
