@@ -70,7 +70,9 @@ components/
 └─ ColorTheoryCards        色彩學小卡
 ```
 
-設計規格見 [docs/superpowers/specs/](docs/superpowers/specs/)。
+配色模型:每組 `Palette` 固定 9 個語意角色(`lib/types.ts` 的 `ROLES`:background / surface / text / muted / border / primary / primaryFg / accent / accentFg),由 `lib/css-vars.ts` 逐一映成預覽 scope 上的 `--app-*` 變數。
+
+MVP 設計規格(已歸檔)見 [docs/archive/mvp/design.md](docs/archive/mvp/design.md)。
 
 ## Roadmap
 

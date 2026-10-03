@@ -1,5 +1,7 @@
 # style-explorer — 設計規格(spec)
 
+> **Archived 2026-10-03.** Implemented; current documentation: [README](../../../README.md) (功能、技術、架構).
+
 > 2026-06-14 · 由 Claude 代理 PM/設計師/RD 角色拍板。使用者授權綠區自主開發,本檔為合約。
 > 構想池來源:`ObsidianVault/side-project-ideas.md` `^style-explorer`
 
